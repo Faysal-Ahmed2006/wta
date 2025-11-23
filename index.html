@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>W T A</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use Inter font -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #171717; /* Dark background, Telegram-like */
+            color: #E5E7EB; /* Light text */
+        }
+        /* Custom scrollbar for better mobile feel */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        .app-container {
+            max-width: 480px; /* Typical mobile/bot UI width */
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-blue': '#007AFF',
+                        'secondary-gray': '#2C2C2E',
+                        'card-bg': '#1C1C1E',
+                        'green-accent': '#34C759',
+                        'red-accent': '#FF3B30',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="p-0 m-0">
+
+    <div class="app-container">
+        <!-- Main Content Area -->
+        <main id="content-container" class="flex-grow p-4 pb-20 overflow-y-auto">
+            <!-- Pages will be rendered here -->
+            
+            <!-- HOME PAGE -->
+            <div id="home-page" class="page active" data-title="Home">
+                <h1 class="text-3xl font-bold mb-6 text-center text-primary-blue">Dashboard</h1>
+
+                <!-- Total Income Card -->
+                <div class="bg-card-bg p-6 rounded-xl shadow-lg mb-6">
+                    <p class="text-sm text-gray-400 mb-1">Total Income (Last 7 Days)</p>
+                    <p id="total-income" class="text-4xl font-extrabold text-green-accent">$12.50</p>
+                </div>
+
+                <!-- Daily Income Chart Mockup -->
+                <div class="bg-card-bg p-6 rounded-xl shadow-lg mb-6">
+                    <h2 class="text-xl font-semibold mb-4 border-b border-secondary-gray pb-2">Daily Income Graph</h2>
+                    <div id="income-chart" class="h-48 flex items-end justify-between space-x-2">
+                        <!-- Chart bars will be populated by JS for responsiveness -->
+                    </div>
+                    <div id="chart-labels" class="flex justify-between text-xs mt-2 text-gray-400">
+                        <!-- Labels will be populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Max Income Detail Card -->
+                <div class="bg-card-bg p-4 rounded-xl shadow-lg">
+                    <p class="text-sm text-gray-400 mb-1">Maximum Daily Income</p>
+                    <p id="max-income" class="text-2xl font-bold">$3.50 (Wed)</p>
+                </div>
+            </div>
+
+            <!-- ADS PAGE -->
+            <div id="ads-page" class="page hidden" data-title="Ads">
+                <h1 class="text-3xl font-bold mb-6 text-center text-primary-blue">Moneytag Ads</h1>
+                
+                <div class="bg-card-bg p-6 rounded-xl shadow-lg mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-lg font-semibold">Moneytag Ad Status</span>
+                        <button id="ad-toggle-btn" class="px-4 py-2 rounded-full font-bold transition duration-200">
+                            <!-- Text updated by JS -->
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-2">Toggle the ad display for earning.</p>
+                </div>
+
+                <div class="bg-card-bg p-6 rounded-xl shadow-lg mb-6">
+                    <h2 class="text-xl font-semibold mb-4 border-b border-secondary-gray pb-2">Viewing Status</h2>
+                    <div id="ad-status-display" class="text-center">
+                        <p id="ad-timer-status" class="text-2xl font-bold text-green-accent">Ad Viewing Active</p>
+                        <p id="ad-timer-countdown" class="text-4xl font-extrabold my-4 text-yellow-400">00:00</p>
+                        <p id="ad-next-action" class="text-sm text-gray-400">Next earning action in...</p>
+                        
+                        <button id="watch-ad-btn" class="mt-4 w-full py-3 rounded-xl font-bold text-white bg-green-accent hover:bg-green-600 transition duration-200 disabled:bg-gray-600" disabled>
+                            Watch Ad Now
+                        </button>
+                        <!-- Updated message to reflect the new conditional cooldown rule -->
+                        <p id="ad-watch-message" class="text-sm text-red-accent mt-2 hidden">After 30 ads, a 12-minute cooldown is required between views.</p>
+                    </div>
+                </div>
+
+                <div class="bg-card-bg p-4 rounded-xl shadow-lg">
+                    <p class="text-sm text-gray-400 mb-1">Ads Watched Today</p>
+                    <p id="ads-watched-count" class="text-2xl font-bold">0 / 100</p>
+                </div>
+            </div>
+
+            <!-- WITHDRAWAL PAGE -->
+            <div id="withdrawal-page" class="page hidden" data-title="Withdrawal">
+                <h1 class="text-3xl font-bold mb-6 text-center text-primary-blue">Withdrawal</h1>
+
+                <!-- Balance Card -->
+                <div class="bg-card-bg p-6 rounded-xl shadow-lg mb-6">
+                    <p class="text-sm text-gray-400 mb-1">Available Balance</p>
+                    <p id="current-balance" class="text-4xl font-extrabold text-yellow-400">$1.50</p>
+                </div>
+
+                <!-- Withdrawal Requirements / Inputs -->
+                <div class="bg-card-bg p-6 rounded-xl shadow-lg mb-6">
+                    <h2 class="text-xl font-semibold mb-4 border-b border-secondary-gray pb-2">Withdrawal Request</h2>
+                    
+                    <p class="text-sm text-gray-400 mb-4">To process your payment via **Binance**, please provide the required account details below. Processing time: <span class="text-yellow-400 font-bold">1-24 hours.</span></p>
+
+                    <label for="binance-account-input" class="text-sm font-semibold block mb-1">Binance Receiving Account (ID/Address)</label>
+                    <input type="text" id="binance-account-input" placeholder="e.g., Binance Wallet ID or Address" class="w-full p-3 mb-4 rounded-lg bg-secondary-gray text-white focus:outline-none focus:ring-2 focus:ring-primary-blue" />
+                    
+                    <label for="cornfarm-account-input" class="text-sm font-semibold block mb-1">Cornfarm Account Number</label>
+                    <input type="text" id="cornfarm-account-input" placeholder="Your Cornfarm ID/Number" class="w-full p-3 mb-6 rounded-lg bg-secondary-gray text-white focus:outline-none focus:ring-2 focus:ring-primary-blue" />
+                    
+                    <!-- Contact Information for Corrections -->
+                    <div class="text-center py-2 border-t border-secondary-gray pt-4">
+                        <p class="text-xs text-red-accent font-medium mb-1">Entered wrong information?</p>
+                        <p class="text-sm font-bold text-primary-blue">
+                            Contact: <a href="mailto:faysalahmed2006304@gmail.com" class="hover:underline">faysalahmed2006304@gmail.com</a>
+                        </p>
+                    </div>
+                    <!-- End Contact Information -->
+
+                    <div class="flex justify-between mt-4">
+                        <span class="text-gray-400">Minimum Withdrawal:</span>
+                        <span id="min-withdrawal-display" class="font-semibold text-green-accent">$2.00</span>
+                    </div>
+                </div>
+
+                <!-- Withdrawal Button -->
+                <button id="withdraw-btn" class="w-full py-4 rounded-xl font-bold text-white transition duration-200 disabled:bg-gray-600 disabled:text-gray-400">
+                    <!-- Text updated by JS -->
+                </button>
+                <p id="withdrawal-message" class="text-center text-red-accent mt-3 hidden text-sm">You need at least $2.00 to withdraw.</p>
+            </div>
+
+            <!-- PROFILE PAGE -->
+            <div id="profile-page" class="page hidden" data-title="Profile">
+                <h1 class="text-3xl font-bold mb-6 text-center text-primary-blue">User Profile</h1>
+
+                <div class="flex flex-col items-center mb-8">
+                    <div class="w-24 h-24 bg-secondary-gray rounded-full flex items-center justify-center mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
+                    <p id="profile-username" class="text-2xl font-bold">@AnnaUser42</p>
+                </div>
+
+                <div class="bg-card-bg p-6 rounded-xl shadow-lg space-y-4">
+                    <div class="border-b border-secondary-gray pb-3">
+                        <p class="text-sm text-gray-400">Total Balance</p>
+                        <p id="profile-balance" class="text-3xl font-extrabold text-yellow-400">$1.50</p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm text-gray-400 mb-1">Your Referral Link</p>
+                        <div class="flex items-center bg-secondary-gray p-2 rounded-lg">
+                            <input id="referral-link-input" type="text" value="t.me/anna_bot?ref=AnnaUser42" readonly class="flex-grow bg-transparent text-sm truncate focus:outline-none" />
+                            <button id="copy-referral-btn" class="ml-2 text-primary-blue hover:text-blue-400 transition duration-150">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z" />
+                                    <path d="M5 3a2 2 0 00-2 2v6a2 2 0 002 2V5h4a2 2 0 00-2-2H5z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <p id="copy-message" class="text-xs text-green-accent mt-1 hidden">Copied!</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Fixed Bottom Navigation Bar -->
+        <nav class="fixed bottom-0 left-0 right-0 bg-secondary-gray border-t border-gray-700 max-w-480px mx-auto shadow-2xl">
+            <div class="flex justify-around h-16">
+                <!-- Navigation Items -->
+                <button class="nav-item flex flex-col items-center justify-center text-xs w-1/4 pt-1 transition duration-150 text-primary-blue" data-target="home-page">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l-7-7-7 7m10-2v10a1 1 0 01-1 1h-3M10 12h4v8a1 1 0 01-1 1h-2a1 1 0 01-1-1v-8z" />
+                    </svg>
+                    <span>HOME</span>
+                </button>
+                <button class="nav-item flex flex-col items-center justify-center text-xs w-1/4 pt-1 transition duration-150 text-gray-400 hover:text-primary-blue" data-target="ads-page">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <span>Ads</span>
+                </button>
+                <button class="nav-item flex flex-col items-center justify-center text-xs w-1/4 pt-1 transition duration-150 text-gray-400 hover:text-primary-blue" data-target="withdrawal-page">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m0 0l.5 2h5l.5-2m-6 0h6m4 0h2a2 2 0 002-2v-3m-4 3l-4-4m0 0l-4 4" />
+                    </svg>
+                    <span>Withdrawal</span>
+                </button>
+                <button class="nav-item flex flex-col items-center justify-center text-xs w-1/4 pt-1 transition duration-150 text-gray-400 hover:text-primary-blue" data-target="profile-page">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Profile</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+    
+    <!-- External Ad Script -->
+    <script src='//jagnaimsee.net/vignette.min.js' data-zone='10225066' data-sdk='show_10225066'></script>
+
+    <!-- Firebase SDKs and Application Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // setLogLevel('Debug'); // Uncomment for debugging Firestore
+
+        let db;
+        let auth;
+        let userId = 'default-user-id';
+        let adStatusListener;
+
+        // --- Configuration Update ---
+        const IS_COUNTDOWN_DISABLED = false; 
+
+        // Global variables provided by the Canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { /* Mock config if needed */ };
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // --- App State (Mock Data) ---
+        // This is static mock data for the UI; only Ads state is real-time via Firestore
+        const MOCK_INCOME_DATA = {
+            daily: [
+                { day: 'Sun', income: 1.50, isMax: false },
+                { day: 'Mon', income: 1.75, isMax: false },
+                { day: 'Tue', income: 2.50, isMax: false },
+                { day: 'Wed', income: 3.50, isMax: true }, // Max Income
+                { day: 'Thu', income: 1.25, isMax: false },
+                { day: 'Fri', income: 1.00, isMax: false },
+                { day: 'Sat', income: 1.00, isMax: false },
+            ],
+            total: 12.50,
+            currentBalance: 1.50,
+            withdrawalMin: 2.00 // Minimum withdrawal amount
+        };
+
+        // --- Ad State (Real-time via Firestore) ---
+        let adState = {
+            isAdOn: false,
+            adsWatchedToday: 0,
+            nextAdTime: Date.now() // Timestamp
+        };
+        
+        // --- Updated Ad Logic Constants ---
+        const AD_DAILY_LIMIT = 100;                 // Max ads per day
+        const ADS_BEFORE_COOLDOWN = 30;             // Ads 1-30 have no cooldown
+        const COOLDOWN_MS = 12 * 60 * 1000;         // 12 minutes
+
+        // --- Utility Functions ---
+        function formatTime(ms) {
+            if (ms <= 0) return "00:00";
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+        
+        /**
+         * Function to display the external ad and handle the success/failure state.
+         * Based on user's provided ad function logic.
+         */
+        function displayExternalAdAndEarn() {
+            const watchBtn = document.getElementById('watch-ad-btn');
+            const originalText = watchBtn.textContent;
+            
+            // Set temporary loading state
+            watchBtn.textContent = "Loading Ad...";
+            
+            return new Promise((resolve) => {
+                // ১. শুধু নিচের এই নম্বরটি পাল্টালেই হবে (আপনার Zone ID দিন)
+                var myZoneID = '10225066';
+                
+                // অটোমেটিক ফাংশন নাম তৈরি হবে
+                var adFunctionName = 'show_' + myZoneID;
+
+                // চেক করা হচ্ছে অ্যাড রেডি আছে কিনা
+                if (typeof window[adFunctionName] === 'function') {
+                    console.log("Ad function found. Attempting to display ad.");
+                    
+                    // Call the external ad function
+                    window[adFunctionName]().then(() => {
+                        // ৩. অ্যাড দেখা শেষ হলে যা ঘটবে (পয়েন্ট বা টাকা) তা নিচে লিখুন
+                        
+                        console.log("অ্যাড দেখা শেষ! পয়েন্ট যোগ করা হলো।");
+                        // We resolve true to indicate success and proceed with Firebase update.
+                        resolve(true); 
+                    }).catch(error => {
+                        console.error("Ad failed to show or was closed:", error);
+                        // If it fails or is closed prematurely, we do not grant points.
+                        resolve(false); 
+                    }).finally(() => {
+                        // Restore button text after attempt
+                        watchBtn.textContent = originalText;
+                    });
+                } else {
+                    console.log("অ্যাড লোড হয়নি। ইন্টারনেট চেক করুন অথবা Zone ID ভুল আছে। (Using Mock Ad)");
+                    // Mock success for development/testing if external script is blocked
+                    setTimeout(() => {
+                        // Restore button text after mock attempt
+                        watchBtn.textContent = originalText;
+                        resolve(true); // Mock success after 1.5s
+                    }, 1500); 
+                }
+            });
+        }
+
+
+        // --- Firestore Initialization and Authentication ---
+
+        async function initFirebase() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                await setPersistence(auth, browserSessionPersistence);
+
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                // Wait for auth state to be ready
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        console.log("Firebase Auth Ready. User ID:", userId);
+                        // Start real-time listener for Ads state
+                        startAdStatusListener();
+                        // Initialize static UI elements
+                        renderHomeGraph();
+                        // Initial update for withdrawal UI
+                        updateWithdrawalUI(); 
+                    } else {
+                        console.error("Authentication failed.");
+                    }
+                });
+
+            } catch (error) {
+                console.error("Firebase initialization or authentication error:", error);
+            }
+        }
+
+        function getAdStatusDocRef() {
+             // Path: /artifacts/{appId}/users/{userId}/anna_bot_state/ad_status
+            return doc(db, 'artifacts', appId, 'users', userId, 'anna_bot_state', 'ad_status');
+        }
+
+        async function initializeAdState() {
+            const docRef = getAdStatusDocRef();
+            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+            
+            // Check if document exists and if the last update was today
+            const docSnap = await getDoc(docRef);
+
+            let initialData = {
+                isAdOn: false,
+                adsWatchedToday: 0,
+                nextAdTime: Date.now(),
+                lastResetDate: today // To check daily reset
+            };
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                
+                // If today is a new day, reset counter and update date
+                if (data.lastResetDate !== today) {
+                    console.log("New day detected. Resetting ad counter.");
+                    initialData.isAdOn = false; // Reset toggle for new day
+                    initialData.adsWatchedToday = 0;
+                    initialData.nextAdTime = Date.now();
+                } else {
+                    // Load existing state
+                    initialData.isAdOn = data.isAdOn;
+                    initialData.adsWatchedToday = data.adsWatchedToday;
+                    // Retain the stored nextAdTime
+                    initialData.nextAdTime = data.nextAdTime;
+                }
+            }
+            
+            // Set/update the document in Firestore
+            await setDoc(docRef, initialData, { merge: true });
+            adState = initialData; // Update local state immediately
+            updateAdUI(true); // Initial UI render
+        }
+
+
+        function startAdStatusListener() {
+            if (adStatusListener) adStatusListener(); // Cleanup previous listener
+
+            const docRef = getAdStatusDocRef();
+            
+            initializeAdState(); // Ensure state is initialized/reset for the day
+
+            adStatusListener = onSnapshot(docRef, (doc) => {
+                if (doc.exists()) {
+                    const data = doc.data();
+                    const today = new Date().toISOString().split('T')[0];
+                    
+                    // Daily check again, mainly for real-time updates from other devices/reloads
+                    if (data.lastResetDate !== today) {
+                         // Force initialization/reset if the date in the DB is old
+                        initializeAdState(); 
+                        return; 
+                    }
+
+                    adState = {
+                        isAdOn: data.isAdOn,
+                        adsWatchedToday: data.adsWatchedToday,
+                        nextAdTime: data.nextAdTime
+                    };
+                    updateAdUI();
+                }
+            }, (error) => {
+                console.error("Error listening to ad status:", error);
+                // Fallback to local state display if Firestore fails
+                updateAdUI();
+            });
+        }
+
+        // --- UI Rendering Functions ---
+
+        function navigate(targetId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.add('hidden');
+                page.classList.remove('active');
+            });
+            const activePage = document.getElementById(targetId);
+            if (activePage) {
+                activePage.classList.remove('hidden');
+                activePage.classList.add('active');
+            }
+
+            document.querySelectorAll('.nav-item').forEach(item => {
+                const isActive = item.getAttribute('data-target') === targetId;
+                item.classList.toggle('text-primary-blue', isActive);
+                item.classList.toggle('text-gray-400', !isActive);
+            });
+            
+            // Re-render the withdrawal UI when navigating to it
+            if (targetId === 'withdrawal-page') {
+                updateWithdrawalUI();
+            }
+        }
+
+        // --- Home Page Logic ---
+        function renderHomeGraph() {
+            const chart = document.getElementById('income-chart');
+            const labels = document.getElementById('chart-labels');
+            chart.innerHTML = '';
+            labels.innerHTML = '';
+
+            const maxIncomeValue = Math.max(...MOCK_INCOME_DATA.daily.map(d => d.income));
+
+            MOCK_INCOME_DATA.daily.forEach(data => {
+                const heightPercentage = (data.income / maxIncomeValue) * 90 + 10; // +10% base height
+                const barColor = data.isMax ? 'bg-red-accent' : 'bg-green-accent';
+                const textColor = data.isMax ? 'text-red-accent' : 'text-green-accent';
+
+                const barDiv = document.createElement('div');
+                barDiv.className = `flex-1 flex flex-col justify-end items-center`;
+                barDiv.innerHTML = `
+                    <div class="text-xs font-semibold mb-1 ${textColor}">$${data.income.toFixed(2)}</div>
+                    <div style="height: ${heightPercentage}%;" class="w-full ${barColor} rounded-t-lg transition-all duration-500 hover:opacity-80"></div>
+                `;
+                chart.appendChild(barDiv);
+
+                const labelSpan = document.createElement('span');
+                labelSpan.textContent = data.day;
+                labels.appendChild(labelSpan);
+            });
+
+            document.getElementById('max-income').textContent = `$${maxIncomeValue.toFixed(2)} (${MOCK_INCOME_DATA.daily.find(d => d.isMax).day})`;
+            document.getElementById('total-income').textContent = `$${MOCK_INCOME_DATA.total.toFixed(2)}`;
+        }
+
+        // --- Ads Page Logic ---
+        let timerInterval;
+
+        async function toggleAdStatus() {
+            const newState = !adState.isAdOn;
+            
+            let updatePayload = { 
+                isAdOn: newState,
+                lastResetDate: new Date().toISOString().split('T')[0] // Ensure date is current
+            };
+
+            if (!newState) {
+                // If turned OFF, stop the timer
+                clearInterval(timerInterval);
+            }
+            
+            try {
+                const docRef = getAdStatusDocRef();
+                await setDoc(docRef, updatePayload, { merge: true });
+            } catch (error) {
+                console.error("Failed to update ad status:", error);
+            }
+        }
+        
+        async function watchAd() {
+            const now = Date.now();
+            
+            if (adState.adsWatchedToday >= AD_DAILY_LIMIT) {
+                console.log("Daily limit reached.");
+                return;
+            }
+
+            // Check if Ad is ON and if cooldown is over
+            if (adState.isAdOn && adState.nextAdTime <= now) {
+                
+                // 1. Attempt to display the ad using the external SDK
+                const adSuccessful = await displayExternalAdAndEarn();
+
+                if (!adSuccessful) {
+                    console.log("Ad display was not successful. Not updating counter.");
+                    return; // Stop if ad failed or was closed
+                }
+
+                // 2. If ad was successful, update the state
+                const newAdsWatched = adState.adsWatchedToday + 1;
+                
+                let newNextAdTime = now;
+                
+                // Apply 12-minute cooldown only after the 30th ad (i.e., for the 31st ad onwards)
+                if (newAdsWatched > ADS_BEFORE_COOLDOWN) {
+                    newNextAdTime = now + COOLDOWN_MS;
+                }
+                
+                try {
+                    const docRef = getAdStatusDocRef();
+                    await setDoc(docRef, {
+                        adsWatchedToday: newAdsWatched,
+                        nextAdTime: newNextAdTime,
+                        lastResetDate: new Date().toISOString().split('T')[0]
+                    }, { merge: true });
+                    
+                    // Start timer if a cooldown was applied
+                    if (newNextAdTime > now) {
+                        startAdTimer(); 
+                    }
+                } catch (error) {
+                    console.error("Failed to update ad watch data:", error);
+                }
+            } else {
+                console.log("Cannot watch ad yet (cooldown or ad is off).");
+            }
+        }
+
+        function startAdTimer() {
+            if (timerInterval) clearInterval(timerInterval); // Clear any existing timer
+
+            timerInterval = setInterval(() => {
+                updateAdUI();
+            }, 1000);
+        }
+
+        function updateAdUI(initial=false) {
+            const now = Date.now();
+            const timeRemaining = adState.nextAdTime - now;
+            const isLimitReached = adState.adsWatchedToday >= AD_DAILY_LIMIT;
+            const isPostCooldown = adState.adsWatchedToday >= ADS_BEFORE_COOLDOWN; // True if the *next* ad requires a cooldown
+
+            const toggleBtn = document.getElementById('ad-toggle-btn');
+            const statusDisplay = document.getElementById('ad-timer-status');
+            const countdownDisplay = document.getElementById('ad-timer-countdown');
+            const nextAction = document.getElementById('ad-next-action');
+            const watchBtn = document.getElementById('watch-ad-btn');
+            const watchMessage = document.getElementById('ad-watch-message');
+            const countDisplay = document.getElementById('ads-watched-count');
+            
+            countDisplay.textContent = `${adState.adsWatchedToday} / ${AD_DAILY_LIMIT}`;
+            watchMessage.classList.add('hidden');
+            watchBtn.disabled = true;
+
+            // 1. Toggle Button
+            if (adState.isAdOn) {
+                toggleBtn.textContent = 'ON';
+                toggleBtn.classList.remove('bg-gray-600');
+                toggleBtn.classList.add('bg-green-accent', 'text-white');
+            } else {
+                toggleBtn.textContent = 'OFF';
+                toggleBtn.classList.remove('bg-green-accent', 'text-white');
+                toggleBtn.classList.add('bg-gray-600', 'text-gray-400');
+            }
+
+            // 2. Status Display Logic
+            if (!adState.isAdOn) {
+                statusDisplay.textContent = 'Ad Viewing Paused';
+                statusDisplay.className = 'text-2xl font-bold text-gray-400';
+                countdownDisplay.textContent = '---';
+                nextAction.textContent = 'Toggle ON to start ad viewing.';
+                clearInterval(timerInterval); // Stop timer when OFF
+                return; 
+            }
+
+            if (isLimitReached) {
+                statusDisplay.textContent = 'Daily Limit Reached';
+                statusDisplay.className = 'text-2xl font-bold text-red-accent';
+                countdownDisplay.textContent = '---';
+                nextAction.textContent = `You have watched the maximum ${AD_DAILY_LIMIT} ads for today.`;
+                clearInterval(timerInterval);
+                return;
+            }
+
+            // 3. Countdown / Ready Logic
+            if (timeRemaining <= 0) {
+                // Ready to watch ad
+                statusDisplay.textContent = 'Ready to Watch Ad';
+                statusDisplay.className = 'text-2xl font-bold text-green-accent';
+                countdownDisplay.textContent = '00:00';
+                nextAction.textContent = 'You can watch the next ad now.';
+                watchBtn.disabled = false;
+                watchBtn.textContent = `Watch Ad Now (${AD_DAILY_LIMIT - adState.adsWatchedToday} remaining)`;
+                
+                clearInterval(timerInterval); // Stop interval if timer runs out
+                
+                // Show messages explaining the cooldown rule
+                if (isPostCooldown) {
+                    watchMessage.textContent = '12-minute cooldown applies after ad 30.';
+                    watchMessage.classList.remove('hidden');
+                } else {
+                    watchMessage.textContent = `No cooldown until ad ${ADS_BEFORE_COOLDOWN + 1}.`;
+                    watchMessage.classList.remove('hidden');
+                }
+                
+            } else if (timeRemaining > 0) {
+                // In Cooldown 
+                statusDisplay.textContent = 'Cooldown Active';
+                statusDisplay.className = 'text-2xl font-bold text-red-accent';
+                countdownDisplay.textContent = formatTime(timeRemaining);
+                nextAction.textContent = 'Ad viewing will resume in:';
+                
+                watchMessage.textContent = `Waiting for the 12-minute cooldown for ad #${adState.adsWatchedToday + 1}.`;
+                watchMessage.classList.remove('hidden');
+                
+                // Ensure the timer is running if the Ad is ON and not limit reached and time is remaining
+                if (initial) startAdTimer(); // Start timer on initialization if already in cooldown
+            }
+        }
+        
+        // --- Withdrawal Page Logic ---
+        function updateWithdrawalUI() {
+            const balance = MOCK_INCOME_DATA.currentBalance;
+            const minWithdrawal = MOCK_INCOME_DATA.withdrawalMin;
+            const canWithdrawBalance = balance >= minWithdrawal;
+            
+            const binanceInput = document.getElementById('binance-account-input');
+            const cornfarmInput = document.getElementById('cornfarm-account-input');
+            const withdrawBtn = document.getElementById('withdraw-btn');
+            const withdrawMsg = document.getElementById('withdrawal-message');
+            
+            document.getElementById('current-balance').textContent = `$${balance.toFixed(2)}`;
+            document.getElementById('min-withdrawal-display').textContent = `$${minWithdrawal.toFixed(2)}`;
+
+            // Check if input fields exist and are filled
+            const isFormComplete = binanceInput && binanceInput.value.trim() !== '' && 
+                                cornfarmInput && cornfarmInput.value.trim() !== '';
+
+            const canWithdraw = canWithdrawBalance && isFormComplete;
+            
+            // Reset message state
+            withdrawMsg.classList.add('hidden');
+            withdrawMsg.classList.remove('text-green-accent');
+            withdrawMsg.classList.add('text-red-accent');
+            
+            if (canWithdraw) {
+                withdrawBtn.textContent = `SUBMIT WITHDRAWAL OF $${balance.toFixed(2)}`;
+                withdrawBtn.classList.add('bg-primary-blue', 'hover:bg-blue-600');
+                withdrawBtn.classList.remove('bg-gray-600', 'text-gray-400');
+                withdrawBtn.disabled = false;
+            } else {
+                withdrawBtn.classList.remove('bg-primary-blue', 'hover:bg-blue-600');
+                withdrawBtn.classList.add('bg-gray-600', 'text-gray-400');
+                withdrawBtn.disabled = true;
+
+                if (!canWithdrawBalance) {
+                    withdrawBtn.textContent = `Cannot Withdraw (Need $${minWithdrawal.toFixed(2)})`;
+                    withdrawMsg.textContent = `You need at least $${minWithdrawal.toFixed(2)} to withdraw.`;
+                    withdrawMsg.classList.remove('hidden');
+                } else if (!isFormComplete) {
+                    withdrawBtn.textContent = 'Enter Account Details to Withdraw';
+                    withdrawMsg.textContent = 'Please enter both your Binance and Cornfarm account numbers.';
+                    withdrawMsg.classList.remove('hidden');
+                } else {
+                     // Should be covered by canWithdraw=false and the if blocks above, but as a fallback:
+                    withdrawBtn.textContent = `SUBMIT WITHDRAWAL OF $${balance.toFixed(2)}`;
+                }
+            }
+        }
+        
+        function handleWithdrawal() {
+            const balance = MOCK_INCOME_DATA.currentBalance;
+            const binanceAccount = document.getElementById('binance-account-input').value.trim();
+            const cornfarmAccount = document.getElementById('cornfarm-account-input').value.trim();
+            
+             // Simple success message
+            const withdrawMsg = document.getElementById('withdrawal-message');
+            
+            if (withdrawMsg) {
+                 // Check if fields are actually filled before processing a mock withdrawal
+                if (binanceAccount === "" || cornfarmAccount === "") {
+                    withdrawMsg.classList.remove('text-green-accent');
+                    withdrawMsg.classList.add('text-red-accent');
+                    withdrawMsg.textContent = 'Please fill in both account details before submitting.';
+                    withdrawMsg.classList.remove('hidden');
+                    return;
+                }
+                
+                
+                withdrawMsg.classList.remove('text-red-accent');
+                withdrawMsg.classList.add('text-green-accent');
+                withdrawMsg.textContent = `Withdrawal request for $${balance.toFixed(2)} submitted to Binance (Cornfarm ID: ${cornfarmAccount}). Processing 1-24 hours.`;
+                withdrawMsg.classList.remove('hidden');
+                
+                console.log("Withdrawal Submitted:");
+                console.log(`Amount: $${balance.toFixed(2)}`);
+                console.log(`Binance Account: ${binanceAccount}`);
+                console.log(`Cornfarm Account: ${cornfarmAccount}`);
+                
+                 // Hide message and reset UI state after a few seconds
+                setTimeout(() => {
+                    withdrawMsg.classList.add('hidden');
+                    updateWithdrawalUI(); 
+                }, 5000);
+            }
+        }
+
+
+        // --- Profile Page Logic ---
+        function setupProfilePage() {
+            document.getElementById('profile-balance').textContent = `$${MOCK_INCOME_DATA.currentBalance.toFixed(2)}`;
+            
+            document.getElementById('copy-referral-btn').addEventListener('click', () => {
+                const input = document.getElementById('referral-link-input');
+                // Use execCommand for better cross-browser compatibility in iFrames/Canvas
+                try {
+                    input.select();
+                    document.execCommand('copy');
+                    const msg = document.getElementById('copy-message');
+                    msg.classList.remove('hidden');
+                    setTimeout(() => msg.classList.add('hidden'), 2000);
+                } catch (err) {
+                    console.error('Could not copy text: ', err);
+                }
+            });
+        }
+
+
+        // --- Global Event Listeners & Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Setup navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const targetId = e.currentTarget.getAttribute('data-target');
+                    navigate(targetId);
+                });
+            });
+
+            // Setup Ad Toggle listener
+            document.getElementById('ad-toggle-btn').addEventListener('click', toggleAdStatus);
+            document.getElementById('watch-ad-btn').addEventListener('click', watchAd);
+            
+            // Withdrawal Page Listeners
+            document.getElementById('withdraw-btn').addEventListener('click', handleWithdrawal);
+            // Re-check button state whenever input changes
+            document.getElementById('binance-account-input')?.addEventListener('input', updateWithdrawalUI);
+            document.getElementById('cornfarm-account-input')?.addEventListener('input', updateWithdrawalUI);
+
+
+            // Initialize Profile page elements
+            setupProfilePage();
+
+            // Start Firebase setup
+            initFirebase();
+        });
+    </script>
+</body>
+</html>
